@@ -4,10 +4,15 @@ import itertools
 import termcolor
 
 def parse(line):
-    left = line[0:line.find('=')].strip()
+    left = line[:line.find('=')].strip()
     right = line[line.find('=')+1:].strip('\'"\n ')
     try:
-        cmd = next(part for part in right.split() if len([char for char in '=<>' if char in part])==0)
+        cmd = next(
+            part
+            for part in right.split()
+            if not [char for char in '=<>' if char in part]
+        )
+
     except StopIteration:
         cmd = right
     return (left, right, cmd)
@@ -16,7 +21,7 @@ def cheatsheet(lines):
     exps = [ parse(line) for line in lines ]
     cheatsheet = {'_default': []}
     for key, group in itertools.groupby(exps, lambda exp:exp[2]):
-        group_list = [ item for item in group ]
+        group_list = list(group)
         if len(group_list)==1:
             target_aliases = cheatsheet['_default']
         else:
@@ -29,10 +34,24 @@ def cheatsheet(lines):
 def pretty_print_group(key, aliases, highlight=None):
     if len(aliases) == 0:
         return
-    group_hl_formatter = lambda g, hl: termcolor.colored(hl, 'yellow').join([termcolor.colored(part, 'red') for part in ('[%s]' % g).split(hl)])
-    alias_hl_formatter = lambda alias, hl: termcolor.colored(hl, 'yellow').join([termcolor.colored(part, 'green') for part in ('\t%s = %s' % alias[0:2]).split(hl)])
-    group_formatter = lambda g: termcolor.colored('[%s]' % g, 'red')
-    alias_formatter = lambda alias: termcolor.colored('\t%s = %s' % alias[0:2], 'green')
+    group_hl_formatter = lambda g, hl: termcolor.colored(hl, 'yellow').join(
+        [termcolor.colored(part, 'red') for part in f'[{g}]'.split(hl)]
+    )
+
+    alias_hl_formatter = lambda alias, hl: termcolor.colored(
+        hl, 'yellow'
+    ).join(
+        [
+            termcolor.colored(part, 'green')
+            for part in ('\t%s = %s' % alias[:2]).split(hl)
+        ]
+    )
+
+    group_formatter = lambda g: termcolor.colored(f'[{g}]', 'red')
+    alias_formatter = lambda alias: termcolor.colored(
+        '\t%s = %s' % alias[:2], 'green'
+    )
+
     if highlight and len(highlight)>0:
         print (group_hl_formatter(key, highlight))
         print ('\n'.join([alias_hl_formatter(alias, highlight) for alias in aliases]))

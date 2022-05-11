@@ -14,8 +14,7 @@ Set `{env}` or create a config file at `{config}`
 See the plugin README for more information.""".format(env=proxy_env, config=proxy_config)
 
 def get_http_proxy():
-    default_proxy = os.environ.get(proxy_env)
-    if default_proxy:
+    if default_proxy := os.environ.get(proxy_env):
         return default_proxy
     if os.path.isfile(proxy_config):
         return check_output(proxy_config).decode("utf-8").strip()
@@ -24,8 +23,10 @@ def get_http_proxy():
 
 
 def make_proxies(url: str):
-    proxies = {"%s_PROXY" % _: url for _ in ("HTTP", "HTTPS", "FTP", "RSYNC", "ALL")}
-    proxies.update({name.lower(): value for (name, value) in proxies.items()})
+    proxies = {
+        f"{_}_PROXY": url for _ in ("HTTP", "HTTPS", "FTP", "RSYNC", "ALL")
+    } | {name.lower(): value for (name, value) in proxies.items()}
+
     proxies["GIT_SSH"] = ssh_agent
     return proxies
 

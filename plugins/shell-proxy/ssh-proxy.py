@@ -18,7 +18,7 @@ proxy_protocols = {
 }
 
 if parsed.scheme not in proxy_protocols:
-    raise TypeError('unsupported proxy protocol: "{}"'.format(parsed.scheme))
+    raise TypeError(f'unsupported proxy protocol: "{parsed.scheme}"')
 
 def make_argv():
     yield "nc"
